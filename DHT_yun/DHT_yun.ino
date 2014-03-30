@@ -7,14 +7,14 @@ March 23rd, 2014
 Arduino YUN Rest Inteface Based Three-
 RHT03 Sensor Reader
 
-Make calls to %ip%/arduino/read/1 to
-read sensor 1
+Sends requests to Paul's server
 *************************************/
 
 #include <dht.h>
 #include <Bridge.h>
 #include <YunServer.h>
 #include <YunClient.h>
+#include <HttpClient.h>
 
 dht DHT;
 
@@ -38,6 +38,8 @@ void setup()
   Serial.println();
   Serial.println("Type,\tstatus,\tHumidity (%),\tTemperature (C)");
   Serial.println("Done.");
+  
+  Bridge.begin();
   
 }
 
@@ -125,39 +127,21 @@ void loop()
 
   humidity[2] = DHT.humidity;
   temperature[2] = DHT.temperature;
-  delay(100);
   
-  // Get clients coming from server
-  YunClient client = server.accept();
-
-  // There is a new client?
-  if (client) {
-    // Process request
-    process(client);
   
-    // Close connection and free resources.
-    client.stop();
-  }
-}
-
-void process(YunClient client) {
-  // read the command
-  String command = client.readStringUntil('/');
-
-  // is "digital" command?
-  if (command == "read") {
-    readSensor(client);
-  }
-}
-
-void readSensor(YunClient client) {
-  int num, value;
-
-  // Read pin number
-  num = client.parseInt();
-
-  // Send feedback to client
-  client.print(humidity[num]);
-  client.print(",");
-  client.print(temperature[num]);
+  //send  for temp
+  HttpClient client;
+  String a = "http://yilunzhou.site50.net/putInfo.php?temperature=";
+  a = a +  temperature[0];
+  client.get(a);
+  
+   //send  for humid
+  a = "http://yilunzhou.site50.net/putInfo.php?humidity=";
+  a = a +  humidity[0];
+  client.get(a);
+  
+  
+  
+  
+  delay(10000); // every 10 seconds
 }
